@@ -2,9 +2,10 @@ FROM python:3.10-slim
 
 WORKDIR /app
 
-COPY send_email.py ./
+COPY send_email.py .
+COPY myimage.png .
 
-RUN pip install secure-smtplib
+RUN pip install smtplib email
 
-CMD ["python3", "send_email.py"]
+CMD ["python", "send_email.py"]
 
