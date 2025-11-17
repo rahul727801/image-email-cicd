@@ -1,0 +1,31 @@
+name: Docker Email Pipeline
+
+on:
+  push:
+    paths:
+      - "*.png"
+      - "*.jpg"
+      - "*.jpeg"
+
+jobs:
+  send-image:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Build Docker image
+        run: docker build -t email-sender .
+
+      - name: Run Docker container to send email
+        run: |
+          docker run \
+            -e SMTP_SERVER="${{ secrets.SMTP_SERVER }}" \
+            -e SMTP_PORT="${{ secrets.SMTP_PORT }}" \
+            -e SMTP_USERNAME="${{ secrets.SMTP_USERNAME }}" \
+            -e SMTP_PASSWORD="${{ secrets.SMTP_PASSWORD }}" \
+            -e SEND_TO="${{ secrets.SEND_TO }}" \
+            -e IMAGE_PATH="myimage.png" \
+            email-sender
+
