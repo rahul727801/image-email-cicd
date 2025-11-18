@@ -9,6 +9,9 @@ SMTP_PASSWORD = os.getenv("SMTP_PASSWORD")
 SEND_TO = os.getenv("SEND_TO")
 IMAGE_PATH = os.getenv("IMAGE_PATH", "myimage.png")
 
+if not os.path.exists(IMAGE_PATH):
+    raise FileNotFoundError(f"Image not found: {IMAGE_PATH}")
+
 msg = EmailMessage()
 msg["Subject"] = "New Image from GitHub Docker CI/CD"
 msg["From"] = SMTP_USERNAME
@@ -18,7 +21,14 @@ msg.set_content("Attached is the latest image uploaded to the Git repository.")
 with open(IMAGE_PATH, "rb") as f:
     file_data = f.read()
     file_name = os.path.basename(IMAGE_PATH)
-    msg.add_attachment(file_data, maintype="image", subtype="png", filename=file_name)
+    ext = file_name.split(".")[-1].lower()  # dynamic subtype (png/jpg/jpeg)
+
+    msg.add_attachment(
+        file_data,
+        maintype="image",
+        subtype=ext,
+        filename=file_name
+    )
 
 with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as smtp:
     smtp.starttls()
