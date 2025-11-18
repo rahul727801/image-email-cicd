@@ -33,7 +33,8 @@ jobs:
           echo "image=$FILE" >> $GITHUB_OUTPUT
 
       - name: Show selected file
-        run: echo "DEBUG: Final image selected: ${{ steps.get_image.outputs.image }}"
+        run: |
+          echo "DEBUG: Final image selected: ${{ steps.get_image.outputs.image }}"
 
       - name: Build Docker image
         run: |
@@ -42,9 +43,18 @@ jobs:
 
       - name: List repo files
         run: |
-          echo "DEBUG: Files in repo:"
+          echo "DEBUG: Files in repository:"
           ls -R .
 
       - name: Run Docker container to send email
         run: |
+          echo "DEBUG: Running container with IMAGE_PATH=${{ steps.get_image.outputs.image }}"
+          docker run \
+            -e SMTP_SERVER="${{ secrets.SMTP_SERVER }}" \
+            -e SMTP_PORT="${{ secrets.SMTP_PORT }}" \
+            -e SMTP_USERNAME="${{ secrets.SMTP_USERNAME }}" \
+            -e SMTP_PASSWORD="${{ secrets.SMTP_PASSWORD }}" \
+            -e SEND_TO="${{ secrets.SEND_TO }}" \
+            -e IMAGE_PATH="${{ steps.get_image.outputs.image }}" \
+            email-sender
 
