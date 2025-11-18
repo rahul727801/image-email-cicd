@@ -2,10 +2,13 @@ FROM python:3.10-slim
 
 WORKDIR /app
 
-COPY send_email.py .
-COPY myimage.png .
+COPY requirements.txt .
+RUN pip install -r requirements.txt
 
-RUN pip install smtplib email
+COPY . .
+
+# Debug: show files inside container
+RUN echo "🔍 DEBUG: Files inside /app:" && ls -R /app
 
 CMD ["python", "send_email.py"]
 

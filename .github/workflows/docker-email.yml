@@ -12,23 +12,48 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout repo
         uses: actions/checkout@v3
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+      - name: Determine modified image file
+        id: get_image
+        run: |
+          echo "🔍 DEBUG: Files changed in commit:"
+          git diff --name-only HEAD~1 HEAD
+
+          FILE=$(git diff --name-only HEAD~1 HEAD | grep -E "\.(png|jpg|jpeg)$" | head -n 1)
+
+          echo "DEBUG: Detected image file = $FILE"
+
+          if [ -z "$FILE" ]; then
+            echo "❌ ERROR: No image file found in commit."
+            exit 1
+          fi
+
+          echo "image=$FILE" >> $GITHUB_OUTPUT
+
+      - name: Show selected file
+        run: echo "DEBUG: Final image selected → ${{ steps.get_image.outputs.image }}"
 
       - name: Build Docker image
-        run: docker build -t email-sender .
+        run: |
+          echo "🔍 DEBUG: Building Docker image..."
+          docker build -t email-sender .
+
+      - name: List repo files
+        run: |
+          echo "🔍 DEBUG: Files in repo:"
+          ls -R .
 
       - name: Run Docker container to send email
         run: |
+          echo "🔍 DEBUG: Running container with IMAGE_PATH=${{ steps.get_image.outputs.image }}"
           docker run \
             -e SMTP_SERVER="${{ secrets.SMTP_SERVER }}" \
             -e SMTP_PORT="${{ secrets.SMTP_PORT }}" \
             -e SMTP_USERNAME="${{ secrets.SMTP_USERNAME }}" \
             -e SMTP_PASSWORD="${{ secrets.SMTP_PASSWORD }}" \
             -e SEND_TO="${{ secrets.SEND_TO }}" \
-            -e IMAGE_PATH="${{ github.event.head_commit.modified[0] }}" \
+            -e IMAGE_PATH="${{ steps.get_image.outputs.image }}" \
             email-sender
 
