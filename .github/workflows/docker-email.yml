@@ -20,7 +20,6 @@ jobs:
         run: |
           echo "DEBUG: Checking if repository has previous commits..."
 
-          # Check if previous commit exists
           if git rev-parse HEAD~1 >/dev/null 2>&1; then
             echo "DEBUG: Previous commit found. Using git diff HEAD~1 HEAD"
             FILE=$(git diff --name-only HEAD~1 HEAD | grep -E "\.(png|jpg|jpeg)$" | head -n 1)
@@ -39,7 +38,7 @@ jobs:
           echo "image=$FILE" >> $GITHUB_OUTPUT
 
       - name: Show selected image file
-        run: echo "DEBUG: Final image selected → ${{ steps.get_image.outputs.image }}"
+        run: echo "DEBUG: Final image selected: ${{ steps.get_image.outputs.image }}"
 
       - name: Build Docker image
         run: |
