@@ -18,7 +18,7 @@ jobs:
       - name: Determine modified image file
         id: get_image
         run: |
-          echo "🔍 DEBUG: Files changed in commit:"
+          echo "DEBUG: Files changed in commit:"
           git diff --name-only HEAD~1 HEAD
 
           FILE=$(git diff --name-only HEAD~1 HEAD | grep -E "\.(png|jpg|jpeg)$" | head -n 1)
@@ -26,34 +26,25 @@ jobs:
           echo "DEBUG: Detected image file = $FILE"
 
           if [ -z "$FILE" ]; then
-            echo "❌ ERROR: No image file found in commit."
+            echo "ERROR: No image file found in commit."
             exit 1
           fi
 
           echo "image=$FILE" >> $GITHUB_OUTPUT
 
       - name: Show selected file
-        run: echo "DEBUG: Final image selected → ${{ steps.get_image.outputs.image }}"
+        run: echo "DEBUG: Final image selected: ${{ steps.get_image.outputs.image }}"
 
       - name: Build Docker image
         run: |
-          echo "🔍 DEBUG: Building Docker image..."
+          echo "DEBUG: Building Docker image..."
           docker build -t email-sender .
 
       - name: List repo files
         run: |
-          echo "🔍 DEBUG: Files in repo:"
+          echo "DEBUG: Files in repo:"
           ls -R .
 
       - name: Run Docker container to send email
         run: |
-          echo "🔍 DEBUG: Running container with IMAGE_PATH=${{ steps.get_image.outputs.image }}"
-          docker run \
-            -e SMTP_SERVER="${{ secrets.SMTP_SERVER }}" \
-            -e SMTP_PORT="${{ secrets.SMTP_PORT }}" \
-            -e SMTP_USERNAME="${{ secrets.SMTP_USERNAME }}" \
-            -e SMTP_PASSWORD="${{ secrets.SMTP_PASSWORD }}" \
-            -e SEND_TO="${{ secrets.SEND_TO }}" \
-            -e IMAGE_PATH="${{ steps.get_image.outputs.image }}" \
-            email-sender
 
